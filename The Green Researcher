@@ -1,0 +1,244 @@
+# The-Green-Researcher
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>The Green Researcher: Misi Lab Penyelamatan Lingkungan</title>
+<style>
+:root{--bg:#f6fbef;--fg:#17361f;--cd:#fffef8;--ac:#2fa05a;--bd:#cfe5c3;color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#10211a;--fg:#eaf6e6;--cd:#183024;--bd:#2c4d3b;color-scheme:dark}}
+:root[data-theme=dark]{--bg:#10211a;--fg:#eaf6e6;--cd:#183024;--bd:#2c4d3b;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#10211a;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+#tb{position:fixed;top:calc(8px + env(safe-area-inset-top,0px));right:calc(8px + env(safe-area-inset-right,0px));display:flex;gap:8px;z-index:5}
+.tb{width:44px;height:44px;border-radius:14px;border:2px solid #fff9;background:#0007;color:#fff;font-size:20px;cursor:pointer}
+#tt{position:fixed;left:50%;top:60px;transform:translateX(-50%);background:#fffbe0;color:#3a3000;font-weight:700;padding:8px 16px;border-radius:99px;box-shadow:0 4px 16px #0004;z-index:6;display:none;max-width:90vw;text-align:center;font-size:14px}
+#pad{position:fixed;left:0;right:0;bottom:0;display:none;justify-content:space-between;align-items:flex-end;padding:0 calc(14px + env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) calc(14px + env(safe-area-inset-left,0px));z-index:4;pointer-events:none}
+.touch #pad{display:flex}
+#pad div{display:flex;gap:12px;align-items:flex-end}
+#pad button{pointer-events:auto;touch-action:none;width:clamp(70px,18vmin,104px);height:clamp(70px,18vmin,104px);border-radius:50%;border:3px solid #fffb;background:#0a1a1099;color:#fff;font-size:32px;font-weight:800;box-shadow:0 4px 14px #0005}
+#pad button:active,#pad button.on{background:#2fa05add;transform:scale(.94)}
+#pad .j{width:clamp(86px,23vmin,130px);height:clamp(86px,23vmin,130px);background:#2fa05acc}
+#pad .f{background:#f6a91acc}
+#ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#000a;z-index:10;padding:10px}
+#pn{background:var(--cd);color:var(--fg);border:3px solid var(--ac);border-radius:24px;padding:18px 20px;max-width:580px;width:100%;max-height:94vh;overflow:auto;box-shadow:0 12px 40px #0008;text-align:center;touch-action:pan-y;line-height:1.45}
+#pn h2{margin:.2em 0;font-size:26px}#pn h3{margin:.3em 0}
+.q{font-weight:700;text-align:left;font-size:16px}
+.op,.go{display:block;width:100%;margin:8px 0;padding:14px;border-radius:16px;border:2px solid var(--bd);background:var(--bg);color:var(--fg);font:inherit;font-size:16px;font-weight:600;text-align:left;cursor:pointer}
+.go{background:linear-gradient(#45cc74,#2a9a55);color:#fff;text-align:center;border:0;font-size:18px;font-weight:800;box-shadow:0 4px 0 #1e7440}
+.go:active{transform:translateY(3px);box-shadow:none}
+.ok{background:#2fa05a!important;color:#fff!important;border-color:#2fa05a!important}
+.no{background:#d9534f!important;color:#fff!important;border-color:#d9534f!important}
+.av{font-size:56px}.sp{background:var(--bg);border-radius:16px;padding:12px 14px;text-align:left}
+input{width:100%;padding:14px;font-size:18px;border-radius:14px;border:2px solid var(--ac);background:var(--bg);color:var(--fg);text-align:center;margin:8px 0;user-select:text;-webkit-user-select:text}
+small{opacity:.75}.big{font-size:40px;font-weight:900;color:var(--ac)}
+</style></head><body>
+<canvas id="c"></canvas>
+<div id="tb"><button class="tb" id="bP" aria-label="Jeda">⏸</button><button class="tb" id="bS" aria-label="Suara">🔊</button><button class="tb" id="bR" aria-label="Ulangi level">↻</button><button class="tb" id="bT" aria-label="Mode gelap">🌓</button></div>
+<div id="tt"></div>
+<div id="pad"><div><button data-k="l">◀️</button><button data-k="r">▶️</button></div><div><button class="f" data-k="f">⚡</button><button class="j" data-k="j">▲</button></div></div>
+<div id="ov"><div id="pn"></div></div>
+<script>
+const $=i=>document.getElementById(i),cv=$('c'),X=cv.getContext('2d'),pn=$('pn'),GY=250,VH=290;
+if(!X.roundRect)X.roundRect=function(a,b,c,d){this.rect(a,b,c,d)};
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let W,H,sc,ty,vw,D=1,res=0,S,G,ovOn=false,mute=false,AC,mt,ms=0,last=0,jp=0,shk=0,cam=0,tto;
+const K={l:0,r:0,j:0,f:0};
+const LV=[
+{n:'Identifikasi Masalah & Studi Pendahuluan',st:'<b>Mentor Lab:</b> Selesai Galungan dan Kuningan, janur dan canang menumpuk di pura tanpa diolah! Si Pemecah Belah dan pasukan Hoaks merebut jurnal penelitianmu. Mulailah dari masalahnya. Kumpulkan 3 gulungan misi!',sk:['#7fd4ff','#e9ffd6'],h1:'#a6e3a0',h2:'#78cc84',gr:'#58c05f',ea:'#8a6a45',tr:'#2f8f4e',ty:0,
+cd:['Identifikasi masalah: menentukan permasalahan dari fenomena yang ditemukan, misalnya timbunan janur dan canang sisa upacara. Lalu susun rumusan masalah yang spesifik dan terarah.','Variabel bebas (X) adalah faktor yang diubah, misalnya persentase serbuk janur. Variabel terikat (Y): kuat tekan dan daya serap air. Variabel kontrol dijaga tetap sama.','Studi pendahuluan: mengumpulkan informasi dan referensi ilmiah sebagai landasan penelitian, misalnya jurnal ilmiah tentang biomassa dan selulosa.'],
+q:[['Setelah Galungan, sampah janur dan canang menumpuk di pura. Rumusan masalah yang paling tepat dan spesifik adalah...','Bagaimana efektivitas pemanfaatan limbah janur sisa upacara sebagai bahan baku alternatif pembuatan paving block?','Bagaimana cara membersihkan sampah janur agar lingkungan kembali indah?','Mengapa umat Hindu selalu menggunakan janur saat hari raya?','Berapa banyak uang yang dihabiskan untuk membeli janur setiap hari raya?','Rumusan masalah harus spesifik, terarah, dan bisa diuji lewat penelitian.'],
+['Variabel bebas (X) yang tepat dalam eksperimen paving block janur adalah...','Persentase penambahan serbuk limbah janur','Kekuatan tekan dan uji pH produk akhir','Jumlah total sampah janur di Kota Denpasar','Waktu warga mengumpulkan janur','Variabel bebas adalah faktor yang sengaja diubah. Kuat tekan dan daya serap air adalah variabel terikat (Y).'],
+['Landasan teori tentang kandungan selulosa sebaiknya dicari dari...','Jurnal ilmiah terakreditasi yang mengkaji teknologi biomassa','Buku cerita rakyat Bali','Video pendek media sosial','Blog pribadi tentang tips bersih-bersih','Studi pendahuluan memakai referensi ilmiah yang dapat dipertanggungjawabkan.']]},
+{n:'Pemilahan & Pra-Perlakuan Sampah (Preparasi)',st:'<b>Mentor Lab:</b> Bahan baku harus bersih! Canang sering bercampur plastik, dupa, dan sisa makanan. Pelajari teknik sortir dan persiapan bahan di lab.',sk:['#ffb36b','#fff0b8'],h1:'#f2c18a',h2:'#e09f68',gr:'#8fcf5a',ea:'#8b5a3a',tr:'#a0521d',ty:1,
+cd:['Pra-perlakuan: pilah janur dan bunga (organik) dari plastik, dupa, dan sisa makanan basah, lalu cuci bersih.','Janur bersih dipotong kecil-kecil lalu dikeringkan (sinar matahari atau oven) sebelum diblender menjadi serbuk.','Saat menghaluskan serbuk kering, gunakan APD: masker debu dan sarung tangan keselamatan.'],
+q:[['Canang bercampur dupa, plastik, dan sisa makanan. Langkah pra-perlakuan awal sebelum diolah menjadi serbuk adalah...','Memilah organik (janur/bunga) dari kontaminan anorganik seperti plastik dan dupa, lalu mencucinya','Langsung membakar semua sampah','Merendam sampah dalam minyak tanah','Membiarkan sampah membusuk di wadah tertutup','Kontaminan harus dipisahkan dulu agar bahan baku bersih.'],
+['Sebelum janur bersih diblender, tahap fisik agar mesin tidak macet adalah...','Memotong kecil-kecil lalu mengeringkannya di bawah matahari atau oven','Merebus janur 24 jam penuh','Membungkus janur basah dalam plastik kedap udara','Menekan janur dengan batu tanpa dikeringkan','Janur kering dan kecil lebih mudah dihaluskan menjadi serbuk.'],
+['APD utama untuk mencegah gangguan pernapasan akibat debu serbuk janur adalah...','Masker debu dan sarung tangan keselamatan','Jas lab tebal dan topi pantai','Kacamata hitam dan sandal jepit','Sarung tenun tradisional Bali','Keselamatan kerja: debu halus harus dicegah masuk ke pernapasan.']]},
+{n:'Proses Pengolahan & Formulasi Produk',st:'<b>Mentor Lab:</b> Selamat datang di laboratorium! Di sini serbuk janur dicampur menjadi paving block. Pahami metodologi, variabel, dan formulasi dengan benar.',sk:['#bfeee8','#f4fffb'],h1:'#b4e2dc',h2:'#8cccc6',gr:'#7fd3c0',ea:'#5f8f93',tr:'#2a8f8a',ty:2,
+cd:['Formulasi adalah kombinasi komposisi bahan. Contoh: Formulasi 1 serbuk janur rendah, Formulasi 2 sedang, Formulasi 3 lebih tinggi. Komposisi harus terukur.','Metodologi menentukan variabel, alat, bahan, dan prosedur. Pengadukan harus merata (homogen) agar serat selulosa tersebar dan tidak berongga.','Jika adonan gagal dicetak, evaluasi komposisi bahan dan prosedur pembuatan, misalnya menyesuaikan rasio bahan kering dan basah.'],
+q:[['Pada paving block campuran serbuk janur dan semen/plastik leleh, fungsi utama serbuk janur adalah...','Bahan pengisi (filler) berserat organik yang memanfaatkan limbah padat','Bahan pengikat utama pengganti semen sepenuhnya','Pewarna agar paving hijau terang','Zat pelarut kimia berbahaya','Janur berperan sebagai filler, bukan pengganti semen.'],
+['Mengapa pengadukan serbuk janur, semen, dan pasir harus homogen?','Agar serat selulosa tersebar merata dan tidak ada rongga udara yang membuat struktur rapuh','Agar paving berwarna hijau mencolok','Agar adonan mengering kurang dari satu menit','Agar volume adonan bertambah dua kali lipat','Adonan yang merata menghasilkan struktur padat dan kuat.'],
+['Adonan terlalu cair dan gagal memadat saat dicetak. Evaluasi yang paling logis adalah...','Mengurangi takaran bahan perekat atau menyesuaikan rasio bahan kering dan basah','Menambahkan lebih banyak air','Membiarkan adonan terbuka selama seminggu','Membuang seluruh bahan','Jika hasil belum sesuai, peneliti mengevaluasi komposisi bahan dan prosedur.']]},
+{n:'Pengujian Mutu Produk (Testing Lab)',st:'<b>Mentor Lab:</b> Paving block sudah dicetak. Sekarang buktikan kualitasnya lewat pengujian dan analisis data. Hoaks akan mencoba menyesatkanmu, jadi percayalah pada data!',sk:['#8b6bd6','#f3c1e8'],h1:'#9a82d2',h2:'#7a63b8',gr:'#9ad36b',ea:'#5b4b7a',tr:'#5a3f9a',ty:3,
+cd:['Uji kuat tekan (satuan MPa) menilai kemampuan menahan beban hingga rusak. Uji penyerapan air mengukur persentase air yang diserap paving.','Pengujian dapat diulang untuk mengurangi pengaruh kesalahan pengukuran. Hasil tiap formulasi dibandingkan, faktor lain dikendalikan (variabel kontrol).','Kuat tekan tertinggi belum tentu formulasi terbaik. Pertimbangkan juga penyerapan air, kondisi fisik, dan kriteria kelayakan.'],
+q:[['Setelah paving block janur dicetak dan dikeringkan, pengujian fisik wajib untuk mengukur kelayakannya adalah...','Uji kuat tekan dan tingkat penyerapan air','Uji rasa dan aroma','Uji tahan cahaya lampu ruangan','Uji kelenturan seperti karet','Kuat tekan (MPa) dan penyerapan air menilai kualitas dan kelayakan paving block.'],
+['Untuk melihat ketahanan retak paving terhadap beban, parameter yang diukur adalah...','Beban maksimum yang dapat ditahan hingga paving gagal atau retak','Jumlah pori mikroskopis di permukaan','Menjemur paving seharian di terik matahari','Perubahan warna saat terkena hujan','Uji kuat tekan mengukur kemampuan menahan beban hingga batas kerusakan.'],
+['Data lab: daya serap air terlalu tinggi dan paving mudah retak. Kesimpulan awalnya adalah...','Komposisi perbandingan bahan pengikat dan serbuk janur belum ideal atau kurang padat','Janur tidak boleh disentuh manusia','Proses pengeringan sudah terlalu sempurna','Sampah janur tidak berpotensi sama sekali','Kesimpulan harus berdasarkan data, lalu produk dievaluasi agar hasilnya lebih optimal.']]},
+{n:'Kesimpulan & Implementasi Masyarakat',st:'<b>Mentor Lab:</b> Hampir selesai! Tarik kesimpulan dari data, lalu bawa solusi ini ke masyarakat. Di ujung level, Si Pemecah Belah menunggu.',sk:['#10204f','#3f62b0'],h1:'#2b3f82',h2:'#1f2f66',gr:'#5fd08a',ea:'#3f5a56',tr:'#7aa6ff',ty:4,night:1,
+cd:['Kesimpulan dan saran disampaikan berdasarkan hasil penelitian dan data, serta memberi rekomendasi untuk penelitian selanjutnya.','Penerapan nyata: sosialisasi dan pelatihan warga mengolah limbah canang dan janur menjadi produk bernilai guna.','Metode ilmiah: Identifikasi Masalah, Studi Literatur, Hipotesis, Eksperimen, Pengumpulan Data, Analisis Data, Kesimpulan.'],
+q:[['Kesimpulan akhir yang paling tepat untuk laporan KTI adalah...','Limbah janur terbukti efektif sebagai bahan baku alternatif paving block, mengurangi volume limbah, dan menghasilkan produk layak uji','Sampah janur tidak bisa dimanfaatkan dan harus dibuang ke TPA','Semua sampah organik Bali langsung menjadi semen keras tanpa diolah','Penelitian dihentikan karena tidak memberi hasil','Kesimpulan harus didasarkan pada data hasil pengujian, bukan perkiraan.'],
+['Langkah hilirisasi yang paling berdampak bagi desa adat atau sekitar pura adalah...','Sosialisasi dan pelatihan mandiri kepada warga cara mengolah limbah canang menjadi produk bernilai guna','Menyembunyikan hasil penelitian agar tidak ditiru','Membakar sisa bahan di lapangan terbuka','Menjual laporan ke luar negeri tanpa praktik','Hasil penelitian bermanfaat bila diterapkan nyata oleh masyarakat.'],
+['Rekomendasi paling konstruktif pada bab saran untuk peneliti berikutnya adalah...','Meneliti variasi bahan perekat lain atau aditif agar kekuatan paving semakin optimal','Menghentikan semua penelitian limbah organik','Mengganti topik menjadi cara memasak makanan tradisional','Menunggu sampah menumpuk dua kali lipat','Saran berisi rekomendasi untuk penelitian lanjutan.']]},
+{n:'Si Pemecah Belah',st:'<b>Si Pemecah Belah:</b> Hahaha! Jurnalmu milikku! Informasi palsu akan memecah belah penelitianmu! <br><b>Mentor Lab:</b> Injak atau tembak dia, lalu jawab soalnya dengan benar. Hindari bola energi gelap!',sk:['#1a0f2e','#5a2a5e'],h1:'#3a1f4f',h2:'#2a1540',gr:'#9a6fd0',ea:'#3a2650',tr:'#b28aff',ty:4,night:1}];
+const B=[['Hipotesis dalam metode ilmiah adalah...','Dugaan sementara yang diuji melalui eksperimen','Kesimpulan akhir penelitian','Daftar pustaka karya tulis','Hasil pengujian yang sudah pasti','Hipotesis disusun sebagai dugaan sementara, lalu diuji lewat eksperimen.'],
+['Ukuran cetakan dan prosedur pengujian yang dijaga tetap sama pada semua formulasi disebut...','Variabel kontrol','Variabel bebas','Variabel terikat','Hipotesis','Variabel kontrol dijaga agar perubahan hasil hanya dipengaruhi variabel yang diuji.'],
+['Mengapa pengujian dapat dilakukan lebih dari satu kali?','Untuk memperoleh data pembanding dan mengurangi pengaruh kesalahan pengukuran','Agar penelitian terlihat lebih panjang','Supaya hasil bisa disesuaikan dengan keinginan peneliti','Karena satu kali pengujian dilarang','Pengulangan membuat data lebih dapat dipertanggungjawabkan.'],
+['Hasil uji kuat tekan paving block dinyatakan dalam satuan...','MPa','Kilogram','Derajat Celsius','Liter','Kuat tekan dinyatakan dalam MPa.'],
+['Formulasi dengan kuat tekan tertinggi belum tentu yang terbaik karena...','Perlu mempertimbangkan penyerapan air dan kriteria kelayakan produk juga','Kuat tekan tidak penting','Formulasi terbaik selalu yang paling murah','Semua formulasi pasti sama','Formulasi terbaik ditentukan dari keseluruhan hasil pengujian.'],
+['Kesimpulan penelitian harus didasarkan pada...','Hasil pengujian dan data yang telah diperoleh','Perkiraan dan pendapat pribadi','Jumlah halaman laporan','Hasil yang paling disukai peneliti','Validasi kesimpulan: bukan sekadar perkiraan atau pendapat pribadi.']];
+// ---------- util ----------
+function rs(){D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*D;cv.height=H*D;const t=document.body.classList.contains('touch');res=(H>W*1.05&&t)?190:0;sc=Math.min((H-res)/VH,W/380);vw=W/sc;ty=(H-res)/sc-VH}
+addEventListener('resize',rs);
+if(matchMedia('(pointer:coarse)').matches)document.body.classList.add('touch');
+addEventListener('touchstart',()=>{if(!document.body.classList.contains('touch')){document.body.classList.add('touch');rs()}},{passive:true});
+function R(s){return()=>(s=(s*9301+49297)%233280)/233280}
+function hsGet(){try{return +localStorage.getItem('gr_hs')||0}catch(e){return 0}}
+function hsSet(v){try{localStorage.setItem('gr_hs',v)}catch(e){}}
+function toast(t){const e=$('tt');e.textContent=t;e.style.display='block';clearTimeout(tto);tto=setTimeout(()=>e.style.display='none',2200)}
+function show(h){pn.innerHTML=h;pn.scrollTop=0;$('ov').style.display='flex';ovOn=true;K.l=K.r=K.j=K.f=0}
+function hide(){$('ov').style.display='none';ovOn=false}
+// ---------- audio ----------
+function au(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume()}
+function bp(f,d,t,v,s){if(mute||!AC)return;try{s=s||0;const o=AC.createOscillator(),g=AC.createGain(),n=AC.currentTime+s;o.type=t||'square';o.frequency.value=f;g.gain.setValueAtTime(v||.05,n);g.gain.exponentialRampToValueAtTime(.001,n+(d||.1));o.connect(g);g.connect(AC.destination);o.start(n);o.stop(n+(d||.1))}catch(e){}}
+function mus(i){clearInterval(mt);const p=[[0,2,4,7,9,7,4,2],[0,3,5,7,10,7,5,3],[0,4,7,11,7,4,2,5],[0,2,3,7,8,7,3,2],[0,3,7,10,12,10,7,3],[0,1,5,6,0,1,5,3]][i],b=[262,294,330,247,220,185][i];ms=0;mt=setInterval(()=>{if(ovOn||mute||!AC)return;bp(b*Math.pow(2,p[ms%8]/12),.22,i==5?'sawtooth':'triangle',.035);if(ms%4==0)bp(b/2,.4,'sine',.05);ms++},[300,260,280,240,320,190][i])}
+// ---------- level ----------
+function newS(n){return{n:n,lv:0,sc:0,first:0,ammo:3}}
+function startLevel(i){S.lv=i;const r=R(i*13+7);
+const g=G={lv:i,t:0,segs:[],pl:[],en:[],co:[],bx:[],sc:[],got:0,sh:[],or:[],pt:[],lives:5,inv:0,shield:0,fire:0,boss:null,sc0:S.sc,len:0,ck:0,cpx:60,gate:-1,open:0,fl:0};
+if(i==5){g.len=900;g.segs=[[0,900]];g.pl=[[110,165,100],[690,165,100]];g.boss={x:720,y:GY-84,w:64,h:84,hp:3,ph:0,vy:0,d:-1,inv:0,tt:2,jt:2,ui:0};}
+else{let x=0,k=0,len=2600+i*250;while(x<len){const w=k?260+(r()*200|0):480;g.segs.push([x,w]);const pw=90+(r()*30|0),px=x+w*.25+(r()*w*.3|0);g.pl.push([px,165,pw]);
+if(k)g.en.push({x:x+w/2,x0:x+24,x1:x+w-24,d:r()<.5?-1:1,a:1});
+for(let c=0;c<4;c++)g.co.push([x+w*.2+c*w*.15,GY-34,0]);for(let c=0;c<3;c++)g.co.push([px+14+c*(pw-28)/2,165-26,0]);
+if(k%2)g.bx.push({x:px+pw/2-13,y:165-28,o:0});x+=w+80+(r()*30|0);k++}
+const n=g.segs.length,l=g.segs[n-1];g.len=l[0]+l[1];g.gate=g.len-80;
+[1,n>>1,n-1].forEach(q=>{const s=g.segs[q];g.sc.push({x:s[0]+s[1]/2,y:GY-46,d:0})});g.ck=g.segs[n>>1][0]+30}
+g.p={x:60,y:GY-58,vx:0,vy:0,w:30,h:56,f:1,gr:1,coy:0,jb:0,pf:0};cam=0;mus(i)}
+// ---------- game logic ----------
+const hx=(a,b,c,d,e,f,g,h)=>a<e+g&&a+c>e&&b<f+h&&b+d>f;
+function part(x,y,c,n){for(let i=0;i<n&&G.pt.length<70;i++)G.pt.push({x:x,y:y,vx:(Math.random()-.5)*240,vy:-Math.random()*240,l:.6,c:c})}
+function hurt(fx){const g=G,p=g.p;if(g.inv>0||g.shield>0||ovOn)return;g.lives--;g.inv=1.6;shk=.35;p.vy=-330;p.vx=(p.x<fx?-1:1)*260;bp(120,.25,'sawtooth',.08);if(g.lives<=0)out()}
+function out(){show('<div class=av>😵</div><h2>Nyawa habis!</h2><p>Jangan menyerah, peneliti! Level diulang dari awal.</p><button class=go id=nx>Ulangi Level</button>');$('nx').onclick=()=>{hide();S.sc=G.sc0;startLevel(S.lv)}}
+function die(){const g=G,p=g.p;g.lives--;shk=.35;bp(110,.35,'sawtooth',.08);if(g.lives<=0)return out();p.x=g.cpx;p.y=GY-p.h-2;p.vx=p.vy=0;g.inv=1.5}
+function kill(e){e.a=0;S.sc+=100;part(e.x,GY-16,'#7be37b',12);bp(300,.15,'square',.06)}
+function upd(dt){const g=G,p=g.p;g.t+=dt;g.fire-=dt;shk=Math.max(0,shk-dt);g.inv-=dt;g.shield-=dt;
+const ax=K.r-K.l;if(ax)p.f=ax;p.vx+=(ax*215-p.vx)*Math.min(1,dt*(p.gr?16:9));
+if(K.j&&!jp)p.jb=.13;jp=K.j;p.jb-=dt;p.coy-=dt;if(p.gr)p.coy=.1;
+if(p.jb>0&&p.coy>0){p.vy=-600;p.gr=0;p.coy=0;p.jb=0;bp(520,.12,'square',.05);bp(780,.1,'square',.03,.05)}
+p.pf=p.y+p.h;p.vy+=1700*dt;if(!K.j&&p.vy<0)p.vy+=2400*dt;p.y+=p.vy*dt;p.x+=p.vx*dt;p.x=Math.max(0,Math.min(g.len-p.w,p.x));
+if(g.gate>0&&!g.open)p.x=Math.min(p.x,g.gate-p.w);
+p.gr=0;const f=p.y+p.h,pf=p.pf,chk=(a,w,t)=>{if(p.vy>=0&&pf<=t+6&&f>=t&&p.x+p.w>a+6&&p.x<a+w-6){p.y=t-p.h;p.vy=0;p.gr=1}};
+g.segs.forEach(s=>chk(s[0],s[1],GY));g.pl.forEach(s=>chk(s[0],s[2],s[1]));
+if(p.y>420)die();
+if(g.ck&&p.x>g.ck){g.cpx=g.ck;g.ck=0;toast('Checkpoint tersimpan!');bp(700,.15)}
+if(K.f&&g.fire<=0){if(S.ammo>0){S.ammo--;g.fire=.28;g.sh.push({x:p.x+p.w/2+p.f*16,y:p.y+30,vx:p.f*480,l:1.2});bp(900,.08,'sawtooth',.04)}else{g.fire=.8;toast('Belum ada proyektil. Cari kotak misteri!')}}
+g.sh.forEach(s=>{s.x+=s.vx*dt;s.l-=dt});g.sh=g.sh.filter(s=>s.l>0);
+g.en.forEach(e=>{if(!e.a)return;e.x+=e.d*45*dt;if(e.x<e.x0||e.x>e.x1)e.d*=-1;
+if(hx(p.x,p.y,p.w,p.h,e.x-17,GY-32,34,32)){if(p.vy>50&&pf<=GY-32+10){kill(e);p.vy=-440}else hurt(e.x)}
+g.sh.forEach(s=>{if(s.l>0&&Math.abs(s.x-e.x)<22&&s.y>GY-44){s.l=0;kill(e)}})});
+g.co.forEach(c=>{if(!c[2]&&Math.abs(p.x+15-c[0])<26&&Math.abs(p.y+28-c[1])<38){c[2]=1;S.sc+=10;part(c[0],c[1],'#ffd84a',8);bp(988,.08,'square',.05);bp(1318,.12,'square',.05,.06)}});
+g.bx.forEach(b=>{if(!b.o&&hx(p.x,p.y,p.w,p.h,b.x,b.y,26,26)){b.o=1;const t=Math.random()*4|0;part(b.x+13,b.y,'#fff',14);bp(600,.1);bp(900,.2,'square',.05,.08);
+if(t==0){S.ammo+=5;toast('Proyektil Energi Hijau +5 (tombol X / ⚡)')}else if(t==1){g.lives=Math.min(9,g.lives+1);toast('Serum Pemulihan: nyawa +1')}else if(t==2){g.shield=8;toast('Perisai Laboratorium 8 detik!')}else{S.sc+=100;toast('Koin Penelitian +100')}}});
+g.sc.forEach((s,i)=>{if(!s.d&&hx(p.x,p.y,p.w,p.h,s.x-14,s.y-14,28,34)){s.d=1;scroll(i)}});
+if(g.gate>0&&!g.open&&g.got>=3){g.open=1;bp(523,.2);bp(784,.3,'square',.05,.15)}
+if(g.gate>0&&p.x+p.w>=g.gate-1&&g.got<3&&g.fire<=0){g.fire=1;toast('Selesaikan 3 gulungan misi dulu ('+g.got+'/3)')}
+if(g.gate>0&&g.open&&p.x>g.gate+8){const i=S.lv;S.sc+=200;if(i<4)story(i+1);else mini()}
+if(g.boss)ubo(dt);
+g.or.forEach(o=>{o.x+=o.vx*dt;o.y+=o.vy*dt;o.l-=dt;if(Math.hypot(o.x-(p.x+15),o.y-(p.y+28))<20){o.l=0;hurt(o.x)}});g.or=g.or.filter(o=>o.l>0);
+g.pt.forEach(q=>{q.x+=q.vx*dt;q.y+=q.vy*dt;q.vy+=600*dt;q.l-=dt});g.pt=g.pt.filter(q=>q.l>0);
+cam+=(Math.max(0,Math.min(g.len-vw,p.x-vw*.4))-cam)*Math.min(1,dt*8)}
+function ubo(dt){const g=G,b=g.boss,p=g.p;if(b.ui)return;b.inv-=dt;b.x+=b.d*(60+b.ph*40)*dt;if(b.x<260||b.x>820)b.d*=-1;
+b.vy+=1700*dt;b.y+=b.vy*dt;if(b.y>=GY-b.h){b.y=GY-b.h;b.vy=0}b.jt-=dt;if(b.jt<=0&&b.vy==0){b.vy=-520;b.jt=2.2-b.ph*.4}
+b.tt-=dt;if(b.tt<=0){b.tt=2.3-b.ph*.55;const a=Math.atan2(p.y+28-(b.y+30),p.x-b.x),n=b.ph==2?3:1,v=170+b.ph*40;for(let i=0;i<n;i++){const q=a+(i-(n-1)/2)*.3;g.or.push({x:b.x,y:b.y+30,vx:Math.cos(q)*v,vy:Math.sin(q)*v,l:4})}bp(140,.2,'sawtooth',.05)}
+if(hx(p.x,p.y,p.w,p.h,b.x-b.w/2,b.y,b.w,b.h)){if(p.vy>50&&p.pf<=b.y+26){bhit();p.vy=-480}else hurt(b.x)}
+g.sh.forEach(s=>{if(s.l>0&&Math.abs(s.x-b.x)<b.w/2+6&&s.y>b.y&&s.y<b.y+b.h){s.l=0;bhit()}})}
+function bhit(){const b=G.boss;if(b.inv>0||b.ui)return;b.hp--;b.inv=.9;S.sc+=100;shk=.2;part(b.x,b.y+30,'#c9a0ff',14);bp(200,.2,'square',.07);if(b.hp<=0){b.ui=1;G.or=[];setTimeout(bq,500)}}
+function bq(){const b=G.boss,ph=b.ph,pen=()=>{G.lives--;if(G.lives<=0)out()},h='Boss • Fase '+(ph+1)+' • Soal ';
+ask(B[ph*2],()=>ask(B[ph*2+1],()=>{b.ph++;if(b.ph>=3)fin();else{b.hp=3;b.ui=0;b.inv=1.2;hide()}},h+'2/2',pen),h+'1/2',pen)}
+// ---------- UI flows ----------
+function scroll(k){const L=LV[S.lv];show('<div class=av>📜</div><h3>Gulungan Misi '+(k+1)+'/3</h3><p class=sp>'+L.cd[k]+'</p><button class=go id=nx>Lanjut ke Soal</button>');
+$('nx').onclick=()=>ask(L.q[k],()=>{G.got++;S.sc+=50;hide();toast(G.got>=3?'Semua gulungan lengkap! Gerbang terbuka →':'Gulungan '+G.got+'/3 selesai')},'Level '+(S.lv+1)+' • Soal '+(k+1)+'/3')}
+function ask(q,done,head,pen){let tr=0;const o=[[q[1],1],[q[2],0],[q[3],0],[q[4],0]].sort(()=>Math.random()-.5);
+show('<small>'+head+'</small><p class=q>'+q[0]+'</p>'+o.map((a,i)=>'<button class=op data-i='+i+'>'+'ABCD'[i]+'. '+a[0]+'</button>').join('')+'<div id=fb></div>');
+pn.querySelectorAll('.op').forEach(b=>b.onclick=()=>{const a=o[b.dataset.i];
+if(!a[1]){tr=1;b.classList.add('no');b.disabled=true;bp(180,.25,'sawtooth',.06);$('fb').textContent=pen?'Belum tepat! Nyawa -1. Coba lagi.':'Belum tepat, coba lagi ya!';if(pen)pen();return}
+b.classList.add('ok');pn.querySelectorAll('.op').forEach(x=>x.disabled=true);bp(660,.1);bp(880,.15,'square',.05,.1);if(!tr){S.first++;S.sc+=100}else S.sc+=20;
+$('fb').innerHTML='<p class=sp><b>✔ Benar!</b> '+q[5]+'</p><button class=go id=nx2>Lanjut</button>';$('nx2').onclick=done})}
+function story(i){S.lv=i;const L=LV[i];show('<div class=av>'+(i==5?'👑':'🧑‍🔬')+'</div><h2>'+(i==5?'Pertarungan Boss':'Level '+(i+1))+'</h2><h3>'+L.n+'</h3><p class=sp>'+L.st+'</p><button class=go id=nx>'+(i==5?'Lawan!':'Mulai Misi!')+'</button>');$('nx').onclick=()=>{hide();startLevel(i)}}
+function mini(){const o=['Identifikasi Masalah','Studi Literatur','Perumusan Hipotesis','Metode Penelitian','Pengumpulan dan Analisis Data','Kesimpulan'];let n=0;
+show('<div class=av>🧪</div><h2>Tantangan Sebelum Boss</h2><p>Ketuk tahapan penelitian sesuai urutan yang benar!</p><div id=ch></div><div id=fb></div>');
+o.map((t,i)=>[t,i]).sort(()=>Math.random()-.5).forEach(a=>{const b=document.createElement('button');b.className='op';b.textContent=a[0];b.onclick=()=>{if(a[1]==n){n++;b.classList.add('ok');b.disabled=true;b.textContent=n+'. '+a[0];bp(500+n*80,.1);
+if(n==6){S.sc+=200;$('fb').innerHTML='<p><b>Berhasil! Pintu ruang boss terbuka.</b></p><button class=go id=nx>Hadapi Si Pemecah Belah</button>';$('nx').onclick=()=>story(5)}}
+else{b.classList.add('no');setTimeout(()=>b.classList.remove('no'),400);bp(160,.2,'sawtooth',.05)}};$('ch').appendChild(b)})}
+function fin(){clearInterval(mt);const hs=hsGet(),nw=S.sc>hs;if(nw)hsSet(S.sc);const f=S.first,b=f>=18?['Peneliti Unggul','🏆']:f>=12?['Peneliti Terampil','🥈']:['Peneliti Pemula','🥉'];
+show('<div class=av>📘</div><h2>Misi Selesai!</h2><p>Kamu mengalahkan Si Pemecah Belah dan merebut kembali <b>Jurnal Penelitian Utama</b>.</p><div class=sp><p>Nama Peneliti: <b>'+esc(S.n)+'</b></p><p>Skor Akhir: <b>'+S.sc+'</b>'+(nw?' 🎉 Rekor baru!':'')+' <small>(Tertinggi: '+Math.max(hs,S.sc)+')</small></p><p>Jawaban benar percobaan pertama: <b>'+f+' / 21</b></p></div><div class=big>'+b[1]+' '+b[0]+'</div><p class=sp>Selamat! Kamu telah menyelesaikan seluruh misi penelitian pemanfaatan limbah janur menjadi paving block ramah lingkungan. Tunjukkan layar hasil ini kepada guru sebagai bukti bahwa kamu telah menyelesaikan permainan dan seluruh misi pembelajaran.</p><p>Ayo olah limbah upacara menjadi sesuatu yang lebih bermanfaat!</p><button class=go id=nx>Main Lagi</button>');$('nx').onclick=()=>{startScreen()}}
+function startScreen(){S=newS('Peneliti');startLevel(0);const h=hsGet();show('<div class=av>🌿🧑‍🔬🌿</div><h2>The Green Researcher</h2><h3>Misi Lab Penyelamatan Lingkungan dari Tumpukan Canang/Janur Sisa Upacara</h3><p class=sp>Jadilah peneliti muda! Ubah limbah janur dan canang sisa Galungan dan Kuningan menjadi paving block ramah lingkungan, lalu rebut kembali jurnal penelitianmu.</p><input id=nm maxlength=16 placeholder="Tulis namamu di sini" autocomplete=off><button class=go id=nx>▶️ Mulai Petualangan</button><p><small>Panah/A D = jalan • Spasi = lompat (tahan = lebih tinggi) • X = tembak • P = jeda'+(h?'<br>Skor tertinggi: '+h:'')+'</small></p>');
+$('nx').onclick=()=>{au();const n=$('nm').value.trim()||'Peneliti';S=newS(n);story(0)}}
+function pause(){if(ovOn)return;show('<h2>⏸ Jeda</h2><button class=go id=nx>Lanjutkan</button><button class=op id=rl>↻ Ulangi Level</button>');$('nx').onclick=hide;$('rl').onclick=()=>{hide();S.sc=G.sc0;startLevel(S.lv)}}
+// ---------- input ----------
+const KM={ArrowLeft:'l',a:'l',A:'l',ArrowRight:'r',d:'r',D:'r',' ':'j',ArrowUp:'j',w:'j',W:'j',x:'f',X:'f',k:'f'};
+addEventListener('keydown',e=>{if(e.target.tagName=='INPUT')return;const k=KM[e.key];if(k){K[k]=1;e.preventDefault();au()}if(e.key=='p'||e.key=='P'||e.key=='Escape')pause()});
+addEventListener('keyup',e=>{const k=KM[e.key];if(k)K[k]=0});
+addEventListener('blur',()=>{K.l=K.r=K.j=K.f=0;if(S&&G&&!ovOn&&!/Pertarungan/.test(pn.innerHTML))pause()});
+document.querySelectorAll('#pad button').forEach(b=>{const k=b.dataset.k,on=e=>{e.preventDefault();au();K[k]=1;b.classList.add('on')},off=e=>{e.preventDefault();K[k]=0;b.classList.remove('on')};
+b.addEventListener('pointerdown',on);['pointerup','pointercancel','pointerout','pointerleave'].forEach(t=>b.addEventListener(t,off));b.addEventListener('contextmenu',e=>e.preventDefault())});
+$('bP').onclick=pause;$('bS').onclick=function(){mute=!mute;this.textContent=mute?'🔇':'🔊';au()};
+$('bR').onclick=()=>{if(!S||ovOn)return;S.sc=G.sc0;startLevel(S.lv);toast('Level diulang')};
+$('bT').onclick=()=>{const r=document.documentElement,d=r.dataset.theme?r.dataset.theme=='dark':matchMedia('(prefers-color-scheme:dark)').matches;r.dataset.theme=d?'light':'dark'};
+// ---------- drawing ----------
+function rr(x,y,w,h,r,c){X.fillStyle=c;X.beginPath();X.roundRect(x,y,w,h,r);X.fill()}
+function dec(t,x,y,c,s){X.save();X.translate(x,y);X.scale(s,s);X.fillStyle=c;
+if(t==0){X.fillStyle='#8a5a2b';X.fillRect(-3,-50,6,50);X.fillStyle=c;for(let i=0;i<5;i++){X.save();X.translate(0,-50);X.rotate(-1.2+i*.6);X.beginPath();X.ellipse(16,0,18,5,0,0,6.3);X.fill();X.restore()}}
+else if(t==1){X.strokeStyle='#c9a66b';X.lineWidth=3;X.beginPath();X.moveTo(0,0);X.quadraticCurveTo(0,-72,22,-66);X.stroke();X.fillStyle=c;for(let i=0;i<5;i++){X.beginPath();X.moveTo(21,-66+i*6);X.lineTo(26,-60+i*6);X.lineTo(17,-60+i*6);X.fill()}X.fillStyle='#ffd84a';X.beginPath();X.arc(0,-6,5,0,6.3);X.fill()}
+else if(t==2){X.fillRect(-22,-8,44,8);for(let i=0;i<3;i++){rr(-16+i*14,-40,8,34,3,'#ffffff88');rr(-16+i*14,-28+i*3,8,22-i*3,3,['#ff7aa2','#6fd6ff','#9be26a'][i])}}
+else if(t==3){X.fillRect(-14,-6,28,6);X.fillRect(-3,-36,6,32);X.save();X.rotate(-.5);X.fillRect(-4,-44,9,26);X.restore();X.fillRect(8,-30,8,18)}
+else{X.fillRect(-18,-24,36,24);for(let i=0;i<3;i++){X.beginPath();X.moveTo(-22+i*4,-24-i*14);X.lineTo(22-i*4,-24-i*14);X.lineTo(14-i*4,-38-i*14);X.lineTo(-14+i*4,-38-i*14);X.fill()}}
+X.restore()}
+function cloud(x,y,s){X.beginPath();X.arc(x,y,14*s,0,6.3);X.arc(x+14*s,y-6*s,17*s,0,6.3);X.arc(x+30*s,y,13*s,0,6.3);X.fill()}
+function bgd(){const L=LV[G.lv];X.setTransform(D,0,0,D,0,0);let g=X.createLinearGradient(0,0,0,H);g.addColorStop(0,L.sk[0]);g.addColorStop(1,L.sk[1]);X.fillStyle=g;X.fillRect(0,0,W,H);
+if(L.night){X.fillStyle='#fff';for(let i=0;i<50;i++){X.globalAlpha=.3+.7*Math.abs(Math.sin(G.t*1.5+i));X.fillRect(((i*137.5-cam*.05*sc)%W+W)%W,(i*61.8)%(H*.6),2,2)}X.globalAlpha=1}
+X.setTransform(D*sc,0,0,D*sc,0,D*ty*sc);
+X.fillStyle=L.night?'#ffffff25':'#ffffffcc';for(let i=0;i<6;i++){const cx=(((i*230+G.t*10-cam*.15)%(vw+260))+vw+260)%(vw+260)-130;cloud(cx,22+(i%3)*30-Math.max(0,ty)*(i%2?.4:.8),1+(i%2)*.4)}
+for(let l=0;l<2;l++){X.fillStyle=l?L.h2:L.h1;X.beginPath();X.moveTo(0,VH+80);const q=l?.3:.12;for(let s=0;s<=vw+20;s+=20){const wx=s+cam*q;X.lineTo(s,GY-40-l*18-(Math.sin(wx*.012+l*2)*32+Math.sin(wx*.027)*14))}X.lineTo(vw,VH+80);X.fill()}
+X.globalAlpha=.55;for(let k=Math.floor(cam*.5/170)-1;k<(cam*.5+vw)/170+1;k++){const wx=k*170+((k*37)%60)-cam*.5;dec(L.ty,wx,GY-8,L.tr,1.5)}X.globalAlpha=1}
+function drawP(){const g=G,p=g.p;if(g.inv>0&&Math.floor(g.t*14)%2)return;const mv=Math.abs(p.vx)>25&&p.gr,s=mv?Math.sin(g.t*16):0,air=!p.gr;
+X.save();X.translate(p.x+p.w/2,p.y+p.h);X.scale(p.f,1);
+X.fillStyle='#0003';if(p.gr){X.beginPath();X.ellipse(0,0,15,4,0,0,6.3);X.fill()}
+const l1=air?-5:s*8,l2=air?6:-s*8;rr(-11+l1,-20,10,20,4,'#34495e');rr(1+l2,-20,10,20,4,'#34495e');rr(-13+l1,-5,14,6,3,'#222');rr(0+l2,-5,14,6,3,'#222');
+X.save();X.translate(0,-38);X.rotate(air?-2.2:-s*.8);rr(-4,0,8,19,4,'#e9eef0');X.fillStyle='#4aa3ff';X.beginPath();X.arc(0,20,5.5,0,6.3);X.fill();X.restore();
+rr(-15,-42,30,27,9,'#fff');X.strokeStyle='#c5d3d8';X.lineWidth=1.5;X.beginPath();X.roundRect(-15,-42,30,27,9);X.stroke();rr(-4,-41,8,12,2,'#bfe3ff');rr(-1.5,-39,3,12,1,'#2fa05a');X.beginPath();X.moveTo(0,-29);X.lineTo(0,-15);X.stroke();rr(5,-34,6,5,1,'#8fd1ff');
+X.save();X.translate(0,-38);X.rotate(air?-2.6:s*.8);rr(-4,0,8,19,4,'#fff');X.strokeStyle='#c5d3d8';X.stroke();X.fillStyle='#4aa3ff';X.beginPath();X.arc(0,20,5.5,0,6.3);X.fill();X.restore();
+X.fillStyle='#f2c29b';X.beginPath();X.arc(0,-49,11,0,6.3);X.fill();X.fillStyle='#3b2a20';X.beginPath();X.arc(-1,-51,11.5,Math.PI*.95,Math.PI*2.05);X.fill();
+rr(-12,-52,24,5,2,'#f6c343');X.fillStyle='#bfe9ff';X.strokeStyle='#2b3a55';X.lineWidth=1.6;X.beginPath();X.arc(5,-49.5,5.5,0,6.3);X.fill();X.stroke();X.fillStyle='#2b3a55';X.beginPath();X.arc(6.5,-49.5,2,0,6.3);X.fill();
+X.beginPath();X.arc(4,-44,3,.2,Math.PI-.2);X.stroke();X.restore();
+if(g.shield>0){X.strokeStyle='#6fd6ffcc';X.lineWidth=3;X.fillStyle='#6fd6ff33';X.beginPath();X.arc(p.x+15,p.y+30,36,0,6.3);X.fill();X.stroke()}
+X.font='bold 12px system-ui';X.textAlign='center';const nm=S.n,tw=X.measureText(nm).width+12;rr(p.x+15-tw/2,p.y-24,tw,17,8,'#000a');X.fillStyle='#fff';X.fillText(nm,p.x+15,p.y-11)}
+function drawE(e){const L=S.lv,t=G.t,bob=Math.abs(Math.sin(t*5+e.x))*3,cx=e.x,cy=GY-16-bob;X.save();X.translate(cx,cy);
+X.fillStyle='#0003';X.beginPath();X.ellipse(0,16+bob,15,4,0,0,6.3);X.fill();
+const h=[350,25,280,200,320][L%5];const g=X.createRadialGradient(-5,-6,2,0,0,20);g.addColorStop(0,'hsl('+h+',80%,70%)');g.addColorStop(1,'hsl('+h+',65%,42%)');X.fillStyle=g;X.beginPath();X.ellipse(0,0,18,16,0,0,6.3);X.fill();
+if(L==1){X.fillStyle='#fff';X.beginPath();X.moveTo(-12,-10);X.lineTo(-16,-22);X.lineTo(-6,-14);X.moveTo(12,-10);X.lineTo(16,-22);X.lineTo(6,-14);X.fill()}
+if(L==2){X.strokeStyle='#444';X.lineWidth=2;X.beginPath();X.moveTo(0,-15);X.lineTo(0,-25);X.stroke();X.fillStyle='#ff5';X.beginPath();X.arc(0,-26,3,0,6.3);X.fill()}
+if(L==3){X.fillStyle='#fff';for(let i=-1;i<2;i++){X.beginPath();X.moveTo(i*9-4,-13);X.lineTo(i*9,-24);X.lineTo(i*9+4,-13);X.fill()}}
+if(L==4){X.fillStyle='#ffd84a';X.beginPath();X.moveTo(-10,-14);X.lineTo(-10,-24);X.lineTo(-4,-18);X.lineTo(0,-26);X.lineTo(4,-18);X.lineTo(10,-24);X.lineTo(10,-14);X.fill()}
+X.fillStyle='#fff';if(L==0){X.beginPath();X.arc(0,-3,8,0,6.3);X.fill();X.fillStyle='#222';X.beginPath();X.arc(e.d*3,-3,3.5,0,6.3);X.fill()}
+else{X.beginPath();X.arc(-6,-3,5,0,6.3);X.arc(6,-3,5,0,6.3);X.fill();X.fillStyle='#222';X.beginPath();X.arc(-6+e.d*2,-3,2.4,0,6.3);X.arc(6+e.d*2,-3,2.4,0,6.3);X.fill()}
+X.strokeStyle='#222';X.lineWidth=2;X.beginPath();X.moveTo(-11,-10);X.lineTo(-2,-6);X.moveTo(11,-10);X.lineTo(2,-6);X.moveTo(-8,8);X.lineTo(-4,5);X.lineTo(0,8);X.lineTo(4,5);X.lineTo(8,8);X.stroke();
+X.restore()}
+function drawB(){const b=G.boss;if(b.inv>0&&Math.floor(G.t*16)%2)return;X.save();X.translate(b.x,b.y);const ph=b.ph;
+X.fillStyle='#0004';X.beginPath();X.ellipse(0,b.h,34,6,0,0,6.3);X.fill();
+const g=X.createLinearGradient(0,20,0,b.h);g.addColorStop(0,['#6a2c9a','#9a2c6a','#b01e2e'][ph]);g.addColorStop(1,'#1c0d2e');X.fillStyle=g;X.beginPath();X.moveTo(-18,24);X.lineTo(18,24);X.lineTo(34,b.h);X.lineTo(-34,b.h);X.fill();
+X.fillStyle='#ffd84a';X.font='bold 11px system-ui';X.textAlign='center';X.fillText('HOAKS',0,56);
+X.fillStyle='#2a1a3c';X.beginPath();X.arc(0,22,20,0,6.3);X.fill();X.fillStyle='#ff4d4d';X.beginPath();X.arc(-7,22,4,0,6.3);X.arc(7,22,4,0,6.3);X.fill();
+X.strokeStyle='#ff4d4d';X.lineWidth=2.5;X.beginPath();X.moveTo(-13,14);X.lineTo(-3,19);X.moveTo(13,14);X.lineTo(3,19);X.moveTo(-8,32);X.lineTo(0,28);X.lineTo(8,32);X.stroke();
+X.fillStyle='#ffd84a';X.beginPath();X.moveTo(-17,6);X.lineTo(-17,-8);X.lineTo(-8,0);X.lineTo(0,-12);X.lineTo(8,0);X.lineTo(17,-8);X.lineTo(17,6);X.fill();
+X.fillStyle='#3b1d5a';X.beginPath();X.arc(-36,50,9,0,6.3);X.arc(36,50,9,0,6.3);X.fill();
+for(let i=0;i<3;i++)rr(-24+i*17,-24,15,7,3,i<b.hp?'#5be07a':'#0006');X.restore()}
+function draw(){const g=G,L=LV[g.lv];bgd();X.save();if(shk>0)X.translate((Math.random()-.5)*shk*14,(Math.random()-.5)*shk*14);X.translate(-cam,0);
+const x0=cam-60,x1=cam+vw+60,gd=X.createLinearGradient(0,GY,0,GY+120);gd.addColorStop(0,L.ea);gd.addColorStop(1,'#00000088');
+for(let k=Math.floor(x0/210);k<x1/210;k++){const wx=k*210+(k*53%90);if(g.segs.some(s=>wx>s[0]+10&&wx<s[0]+s[1]-10))dec(L.ty,wx,GY,L.tr,1.1)}
+g.segs.forEach(s=>{if(s[0]+s[1]<x0||s[0]>x1)return;X.fillStyle=gd;X.fillRect(s[0],GY,s[1],700);X.fillStyle='#0002';for(let y=GY+22;y<GY+120;y+=22)X.fillRect(s[0],y,s[1],2);X.fillStyle=L.gr;X.beginPath();X.roundRect(s[0]-3,GY-4,s[1]+6,14,6);X.fill();X.fillStyle='#ffffff40';X.fillRect(s[0],GY-3,s[1],3)});
+g.pl.forEach(s=>{rr(s[0],s[1],s[2],16,7,L.ea);rr(s[0],s[1]-3,s[2],9,5,L.gr)});
+if(g.gate>0){const o=g.open,x=g.gate;rr(x,GY-84,14,84,4,'#8a7a66');rr(x+30,GY-84,14,84,4,'#8a7a66');rr(x-6,GY-92,56,12,5,'#6b5c4a');X.fillStyle=o?'#7dffa0':'#ff5a5a';X.beginPath();X.arc(x+22,GY-98,6,0,6.3);X.fill();if(o){X.fillStyle='#7dffa044';X.fillRect(x+14,GY-84,16,84)}else{X.fillStyle='#4a3a2a';X.fillRect(x+14,GY-84,16,84)}}
+if(g.ck){X.fillStyle='#fff';X.fillRect(g.ck,GY-50,3,50);X.fillStyle='#f6c343';X.beginPath();X.moveTo(g.ck+3,GY-50);X.lineTo(g.ck+26,GY-42);X.lineTo(g.ck+3,GY-34);X.fill()}
+g.sc.forEach(s=>{if(s.d)return;const b=Math.sin(g.t*3+s.x)*4,y=s.y+b;X.fillStyle='#fff8a044';X.beginPath();X.arc(s.x,y,22,0,6.3);X.fill();rr(s.x-12,y-12,24,26,4,'#f7e3a4');rr(s.x-15,y-14,30,6,3,'#c98a3a');rr(s.x-15,y+9,30,6,3,'#c98a3a');X.fillStyle='#8a5a2b';X.fillRect(s.x-7,y-3,14,2);X.fillRect(s.x-7,y+3,10,2)});
+g.bx.forEach(b=>{if(b.o)return;const y=b.y+Math.sin(g.t*3+b.x)*2;rr(b.x,y,26,26,6,'#ffd84a');rr(b.x+3,y+3,20,20,4,'#fff3b0');X.fillStyle='#2fa05a';X.font='bold 18px system-ui';X.textAlign='center';X.fillText('?',b.x+13,y+20)});
+g.co.forEach(c=>{if(c[2]||c[0]<x0||c[0]>x1)return;const w=Math.abs(Math.cos(g.t*4+c[0]));X.fillStyle='#e0a000';X.beginPath();X.ellipse(c[0],c[1],7*w+1.5,8,0,0,6.3);X.fill();X.fillStyle='#ffd84a';X.beginPath();X.ellipse(c[0],c[1],5*w+1,6,0,0,6.3);X.fill()});
+g.en.forEach(e=>{if(e.a&&e.x>x0&&e.x<x1)drawE(e)});if(g.boss)drawB();drawP();
+X.fillStyle='#8dff9a';g.sh.forEach(s=>{X.globalAlpha=.35;X.beginPath();X.arc(s.x,s.y,10,0,6.3);X.fill();X.globalAlpha=1;X.beginPath();X.arc(s.x,s.y,5,0,6.3);X.fill()});
+g.or.forEach(o=>{X.fillStyle='#a040ff55';X.beginPath();X.arc(o.x,o.y,15,0,6.3);X.fill();X.fillStyle='#1a0033';X.beginPath();X.arc(o.x,o.y,9,0,6.3);X.fill()});
+g.pt.forEach(q=>{X.globalAlpha=Math.max(0,q.l*1.6);X.fillStyle=q.c;X.fillRect(q.x,q.y,4,4)});X.globalAlpha=1;X.restore();
+X.setTransform(D,0,0,D,0,0);const hw=Math.min(W-170,470);X.fillStyle='#000a';X.beginPath();X.roundRect(8,8,hw,36,18);X.fill();X.font='bold 14px system-ui';X.textAlign='left';X.fillStyle='#ff7a8a';X.fillText('♥️ '+g.lives,20,31);X.fillStyle='#ffd84a';X.fillText('★ '+S.sc,70,31);
+if(g.boss){X.fillStyle='#d6b3ff';X.fillText('Fase '+(g.boss.ph+1)+'/3',150,31)}else{X.fillStyle='#fff';X.fillText('📜 '+g.got+'/3',150,31)}X.fillStyle='#8dff9a';X.fillText('⚡ '+S.ammo,225,31);X.fillStyle='#bfe9ff';X.fillText('Lv '+(g.lv+1),285,31);if(g.shield>0)X.fillText('🛡 '+Math.ceil(g.shield),340,31)}
+function loop(t){const dt=Math.min(.033,(t-last)/1000||0);last=t;if(G){if(!ovOn)upd(dt);draw()}requestAnimationFrame(loop)}
+rs();startScreen();requestAnimationFrame(loop);
+</script></body></html>
