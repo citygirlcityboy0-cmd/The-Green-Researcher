@@ -36,7 +36,7 @@ small{opacity:.75}.big{font-size:40px;font-weight:900;color:var(--ac)}
 <canvas id="c"></canvas>
 <div id="tb"><button class="tb" id="bP" aria-label="Jeda">⏸</button><button class="tb" id="bS" aria-label="Suara">🔊</button><button class="tb" id="bR" aria-label="Ulangi level">↻</button><button class="tb" id="bT" aria-label="Mode gelap">🌓</button></div>
 <div id="tt"></div>
-<div id="pad"><div><button data-k="l">◀️</button><button data-k="r">▶️</button></div><div><button class="f" data-k="f">⚡</button><button class="j" data-k="j">▲</button></div></div>
+<div id="pad"><div><button data-k="l">◀</button><button data-k="r">▶</button></div><div><button class="f" data-k="f">⚡</button><button class="j" data-k="j">▲</button></div></div>
 <div id="ov"><div id="pn"></div></div>
 <script>
 const $=i=>document.getElementById(i),cv=$('c'),X=cv.getContext('2d'),pn=$('pn'),GY=250,VH=290;
@@ -162,7 +162,7 @@ if(n==6){S.sc+=200;$('fb').innerHTML='<p><b>Berhasil! Pintu ruang boss terbuka.<
 else{b.classList.add('no');setTimeout(()=>b.classList.remove('no'),400);bp(160,.2,'sawtooth',.05)}};$('ch').appendChild(b)})}
 function fin(){clearInterval(mt);const hs=hsGet(),nw=S.sc>hs;if(nw)hsSet(S.sc);const f=S.first,b=f>=18?['Peneliti Unggul','🏆']:f>=12?['Peneliti Terampil','🥈']:['Peneliti Pemula','🥉'];
 show('<div class=av>📘</div><h2>Misi Selesai!</h2><p>Kamu mengalahkan Si Pemecah Belah dan merebut kembali <b>Jurnal Penelitian Utama</b>.</p><div class=sp><p>Nama Peneliti: <b>'+esc(S.n)+'</b></p><p>Skor Akhir: <b>'+S.sc+'</b>'+(nw?' 🎉 Rekor baru!':'')+' <small>(Tertinggi: '+Math.max(hs,S.sc)+')</small></p><p>Jawaban benar percobaan pertama: <b>'+f+' / 21</b></p></div><div class=big>'+b[1]+' '+b[0]+'</div><p class=sp>Selamat! Kamu telah menyelesaikan seluruh misi penelitian pemanfaatan limbah janur menjadi paving block ramah lingkungan. Tunjukkan layar hasil ini kepada guru sebagai bukti bahwa kamu telah menyelesaikan permainan dan seluruh misi pembelajaran.</p><p>Ayo olah limbah upacara menjadi sesuatu yang lebih bermanfaat!</p><button class=go id=nx>Main Lagi</button>');$('nx').onclick=()=>{startScreen()}}
-function startScreen(){S=newS('Peneliti');startLevel(0);const h=hsGet();show('<div class=av>🌿🧑‍🔬🌿</div><h2>The Green Researcher</h2><h3>Misi Lab Penyelamatan Lingkungan dari Tumpukan Canang/Janur Sisa Upacara</h3><p class=sp>Jadilah peneliti muda! Ubah limbah janur dan canang sisa Galungan dan Kuningan menjadi paving block ramah lingkungan, lalu rebut kembali jurnal penelitianmu.</p><input id=nm maxlength=16 placeholder="Tulis namamu di sini" autocomplete=off><button class=go id=nx>▶️ Mulai Petualangan</button><p><small>Panah/A D = jalan • Spasi = lompat (tahan = lebih tinggi) • X = tembak • P = jeda'+(h?'<br>Skor tertinggi: '+h:'')+'</small></p>');
+function startScreen(){S=newS('Peneliti');startLevel(0);const h=hsGet();show('<div class=av>🌿🧑‍🔬🌿</div><h2>The Green Researcher</h2><h3>Misi Lab Penyelamatan Lingkungan dari Tumpukan Canang/Janur Sisa Upacara</h3><p class=sp>Jadilah peneliti muda! Ubah limbah janur dan canang sisa Galungan dan Kuningan menjadi paving block ramah lingkungan, lalu rebut kembali jurnal penelitianmu.</p><input id=nm maxlength=16 placeholder="Tulis namamu di sini" autocomplete=off><button class=go id=nx>▶ Mulai Petualangan</button><p><small>Panah/A D = jalan • Spasi = lompat (tahan = lebih tinggi) • X = tembak • P = jeda'+(h?'<br>Skor tertinggi: '+h:'')+'</small></p>');
 $('nx').onclick=()=>{au();const n=$('nm').value.trim()||'Peneliti';S=newS(n);story(0)}}
 function pause(){if(ovOn)return;show('<h2>⏸ Jeda</h2><button class=go id=nx>Lanjutkan</button><button class=op id=rl>↻ Ulangi Level</button>');$('nx').onclick=hide;$('rl').onclick=()=>{hide();S.sc=G.sc0;startLevel(S.lv)}}
 // ---------- input ----------
@@ -237,7 +237,7 @@ g.en.forEach(e=>{if(e.a&&e.x>x0&&e.x<x1)drawE(e)});if(g.boss)drawB();drawP();
 X.fillStyle='#8dff9a';g.sh.forEach(s=>{X.globalAlpha=.35;X.beginPath();X.arc(s.x,s.y,10,0,6.3);X.fill();X.globalAlpha=1;X.beginPath();X.arc(s.x,s.y,5,0,6.3);X.fill()});
 g.or.forEach(o=>{X.fillStyle='#a040ff55';X.beginPath();X.arc(o.x,o.y,15,0,6.3);X.fill();X.fillStyle='#1a0033';X.beginPath();X.arc(o.x,o.y,9,0,6.3);X.fill()});
 g.pt.forEach(q=>{X.globalAlpha=Math.max(0,q.l*1.6);X.fillStyle=q.c;X.fillRect(q.x,q.y,4,4)});X.globalAlpha=1;X.restore();
-X.setTransform(D,0,0,D,0,0);const hw=Math.min(W-170,470);X.fillStyle='#000a';X.beginPath();X.roundRect(8,8,hw,36,18);X.fill();X.font='bold 14px system-ui';X.textAlign='left';X.fillStyle='#ff7a8a';X.fillText('♥️ '+g.lives,20,31);X.fillStyle='#ffd84a';X.fillText('★ '+S.sc,70,31);
+X.setTransform(D,0,0,D,0,0);const hw=Math.min(W-170,470);X.fillStyle='#000a';X.beginPath();X.roundRect(8,8,hw,36,18);X.fill();X.font='bold 14px system-ui';X.textAlign='left';X.fillStyle='#ff7a8a';X.fillText('♥ '+g.lives,20,31);X.fillStyle='#ffd84a';X.fillText('★ '+S.sc,70,31);
 if(g.boss){X.fillStyle='#d6b3ff';X.fillText('Fase '+(g.boss.ph+1)+'/3',150,31)}else{X.fillStyle='#fff';X.fillText('📜 '+g.got+'/3',150,31)}X.fillStyle='#8dff9a';X.fillText('⚡ '+S.ammo,225,31);X.fillStyle='#bfe9ff';X.fillText('Lv '+(g.lv+1),285,31);if(g.shield>0)X.fillText('🛡 '+Math.ceil(g.shield),340,31)}
 function loop(t){const dt=Math.min(.033,(t-last)/1000||0);last=t;if(G){if(!ovOn)upd(dt);draw()}requestAnimationFrame(loop)}
 rs();startScreen();requestAnimationFrame(loop);
